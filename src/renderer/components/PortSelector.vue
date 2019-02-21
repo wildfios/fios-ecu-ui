@@ -1,9 +1,16 @@
 <template>
   <div>
       <button v-on:click="tryToConnect()">connect</button>
-      <select>
-          <option v-for="port in ports" :key="'port-item-' + port.comName" v-bind:value="port">{{port}}</option>
-      </select>
+      <b-field label="Serial Port">
+        <b-select placeholder="Select a port">
+          <option
+            v-for="port in ports"
+            :value="port.comName"
+            :key="'port-item-' + port.comName">
+            {{ port.comName }}
+          </option>
+        </b-select>
+      </b-field>
   </div>
 </template>
 

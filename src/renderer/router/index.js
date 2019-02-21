@@ -6,12 +6,12 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/a',
+      path: '/',
       name: 'port-selector',
       component: require('@/components/PortSelector').default
     },
     {
-      path: '/',
+      path: '/main',
       name: 'landing-page',
       component: require('@/components/LandingPage').default      
     },
