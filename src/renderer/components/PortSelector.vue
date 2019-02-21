@@ -23,13 +23,18 @@ export default {
     return { ports: ["sdfdsfds"] };
   },
   mounted: () => {
-    let self = this;
-    serialPort.list((err, port) => {
-      console.log(port, self);
-      self.ports = port;
-    });
+    // let self = this;
+    // serialPort.list((err, port) => {
+    //   console.log(port, self);
+    //   self.ports = port;
+    // });
+    this.getPortList();
   },
   methods: {
+    async getPortList() {
+      ports = await serialPort.list();
+      console.log(ports);
+    },
     tryToConnect() {
       serialPort.list((err, port) => {
         console.log(port);

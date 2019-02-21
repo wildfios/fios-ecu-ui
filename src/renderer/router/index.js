@@ -8,7 +8,10 @@ export default new Router({
     {
       path: '/',
       name: 'port-selector',
-      component: require('@/components/PortSelector').default
+      component: require('@/components/PortSelector').default,
+      beforeEnter: (to, from, next) => {
+        next();
+      }
     },
     {
       path: '/main',

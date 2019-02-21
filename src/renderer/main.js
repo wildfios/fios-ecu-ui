@@ -5,6 +5,8 @@ import App from './App'
 import router from './router'
 import store from './store'
 
+import { sync } from 'vuex-router-sync';
+
 import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
 import Vuex from 'vuex'
@@ -15,6 +17,8 @@ Vue.use(Buefy)
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.http = Vue.prototype.$http = axios
 Vue.config.productionTip = false
+
+sync(store, router);
 
 /* eslint-disable no-new */
 new Vue({
