@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <main-menu></main-menu>
+    <!-- <main-menu></main-menu> -->
     <router-view class="main-outlet-frame"></router-view>
   </div>
 </template>

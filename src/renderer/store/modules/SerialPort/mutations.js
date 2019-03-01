@@ -1,6 +1,11 @@
+import { link } from "fs";
+
 export default {
-    OPEN(state, port) {
-        console.log(port);        
+    SET_PORT(state, port) {
         state.port = port;
+    },
+
+    SET_LIST(state, list) {
+        state.portList = list;
     }
 };

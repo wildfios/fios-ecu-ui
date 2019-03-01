@@ -2,6 +2,7 @@
   <div>
     <h1 v-on:click="updateData()">{{msg}}</h1>
     <button v-on:click="test()">test</button>
+    <button v-on:click="serial()">test</button>
     <h1 class="test-1" v-bind:style="{'left': aaa + 'px'}">{{aaa}}</h1>
     <modal-window>
       <map-table 
@@ -24,6 +25,9 @@ import modalWindow from "./modalWindow.vue";
 import MapTable from "./mapTable.vue";
 import { setInterval } from "timers";
 import { throws } from "assert";
+
+import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 
 import FileService from "../services/FileService.js";
 
@@ -78,6 +82,10 @@ export default {
       ]
     };
   },
+  computed: {
+    ...mapState('serialPort', ['portList', 'port']),
+    ...mapGetters('serialPort', ['portCount'])
+  },
   created: () => {},
   methods: {
     test() {
@@ -106,11 +114,22 @@ export default {
     onChange(e) {
 
     },
+
+    serial() {
+      let path = this.portList[0].comName;
+      let port = new serialPort(path, { baudRate: 115200 });
+      
+      port.on('data', (data) => {
+        let res = engineState.read(data.reverse(), 0)
+        console.log(8000000 / (res.rpm * 2))
+      })
+    },
+
     increment() {
-      this.setMapData(3, 3, Math.floor(Math.random() * 100));
+      //this.setMapData(3, 3, Math.floor(Math.random() * 100));
       this.val =
         Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
-      fileServiceService.saveFile(this.fuelMap);
+      // fileServiceService.saveFile(this.fuelMap);
     }
   }
 };

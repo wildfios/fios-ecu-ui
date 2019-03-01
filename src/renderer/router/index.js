@@ -1,7 +1,8 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import Vue from 'vue';
+import store from '../store';
+import Router from 'vue-router';
 
-Vue.use(Router)
+Vue.use(Router);
 
 export default new Router({
   routes: [
@@ -10,13 +11,25 @@ export default new Router({
       name: 'port-selector',
       component: require('@/components/PortSelector').default,
       beforeEnter: (to, from, next) => {
-        next();
+        if (store.state.port !== undefined) {
+          next('/main');
+        } else {
+          next();
+        }
       }
     },
     {
       path: '/main',
       name: 'landing-page',
-      component: require('@/components/LandingPage').default      
+      component: require('@/components/LandingPage').default,
+      beforeEnter: (to, from, next) => {
+        console.log(store.state.port )
+        if (store.state.port !== undefined) {
+          next();
+        } else {
+          next('/');
+        }
+      }    
     },
     {
       path: '*',

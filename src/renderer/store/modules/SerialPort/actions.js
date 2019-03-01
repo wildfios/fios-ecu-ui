@@ -1,9 +1,13 @@
 const serialPort = require("serialport");
 
 export default {
-    async open({ commit }, path) {
-        const { port } = await serialPort.open(path, { baudRate: 115200 });
-        
-        commit('OPEN', port);
+    async list({ commit }) {
+        const portList = await serialPort.list();
+
+        commit('SET_LIST', portList);
     },
+
+    setPort({ commit }, port) {
+        commit('SET_PORT', port);
+    }
 };
