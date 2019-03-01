@@ -2,7 +2,7 @@
   <div>
     <h1 v-on:click="updateData()">{{msg}}</h1>
     <button v-on:click="test()">test</button>
-    <button v-on:click="serial()">test</button>
+    <button v-on:click="serial()">test serial</button>
     <h1 class="test-1" v-bind:style="{'left': aaa + 'px'}">{{aaa}}</h1>
     <modal-window>
       <map-table 
@@ -23,13 +23,20 @@
 <script>
 import modalWindow from "./modalWindow.vue";
 import MapTable from "./mapTable.vue";
-import { setInterval } from "timers";
-import { throws } from "assert";
+import SerialComm from '../services/SerialComm';
+import Helpers from '../services/Helpers';
 
-import { mapState } from 'vuex';
-import { mapGetters } from 'vuex';
+import { setInterval } from "timers";
 
 import FileService from "../services/FileService.js";
+
+const Struct = require('js-struct/lib/Struct')
+const Type = require('js-struct/lib/Type')
+const engineState = Struct([
+  Type.uint8('with'),
+  Type.uint8('load'),
+  Type.uint32('rpm'),
+]);
 
 const fileServiceService = new FileService();
 
@@ -82,11 +89,6 @@ export default {
       ]
     };
   },
-  computed: {
-    ...mapState('serialPort', ['portList', 'port']),
-    ...mapGetters('serialPort', ['portCount'])
-  },
-  created: () => {},
   methods: {
     test() {
       const self = this;
@@ -116,16 +118,17 @@ export default {
     },
 
     serial() {
-      let path = this.portList[0].comName;
-      let port = new serialPort(path, { baudRate: 115200 });
-      
-      port.on('data', (data) => {
+      SerialComm.port.on('data', (data) => {
         let res = engineState.read(data.reverse(), 0)
         console.log(8000000 / (res.rpm * 2))
       })
     },
 
     increment() {
+      let values = [10, 12, 5, 9, 13, 6];
+      console.log(Helpers.closest(values, 4));
+
+
       //this.setMapData(3, 3, Math.floor(Math.random() * 100));
       this.val =
         Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);

@@ -1,9 +1,9 @@
 <template>
-  <div>
-    <button v-on:click="tryToConnect()">Connect</button>
-    <div v-if="portCount > 0">
+  <div class="port-selector-body">
+    <div v-if="portList.length > 0">
+      <h1 class="port-selector-title">CONNECT TO ECU</h1>
       <b-field label="Serial Port">
-        <b-select placeholder="Select a port" v-model="selectedPort">
+        <b-select placeholder="Select a port" v-model="selectedPort" class="port-selector-list">
           <option
             v-for="port in portList"
             :value="port.comName"
@@ -13,62 +13,93 @@
         </b-select>
       </b-field>
     </div>
+    <p class="port-selector-text">
+      Select port and press Connect button
+    </p>
+    <section class="port-selector-wrapper-inline">
+      <b-message v-if="errorMsg !== ''" type="is-danger" class="port-selector-err-msg">
+        {{errorMsg}}
+      </b-message>
+    </section>
+    <section class="port-selector-wrapper-block">
+      <button class="button is-medium is-info port-selector-wrapper" @click="tryToConnect()">
+        Connect
+      </button>
+    </section>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
 import { mapGetters } from 'vuex';
+import SerialComm from '../services/SerialComm'
+import { throws } from 'assert';
 
 const serialPort = require("serialport");
-const Delimiter = require('@serialport/parser-delimiter')
-
-const Struct = require('js-struct/lib/Struct')
-const Type = require('js-struct/lib/Type')
-const engineState = Struct([
-  Type.uint8('with'),
-  Type.uint8('load'),
-  Type.uint32('rpm'),
-]);
 
 export default {
   name: "port-selector",
   data: () => {
-    return { 
-      ports: [],
-      selectedPort: '' 
+    return {
+      portList: [],
+      selectedPort: '',
+      errorMsg: ''
     };
-  },
-  computed: {
-    ...mapState('serialPort', ['portList', 'port']),
-    ...mapGetters('serialPort', ['portCount'])
   },
   mounted() {
     this.getPortList();
   },
   methods: {
     async getPortList() {
-      await this.$store.dispatch('serialPort/list');
+      this.portList = await SerialComm.fetchPortList();
       this.selectedPort = this.portList[0].comName;
     },
     async tryToConnect () {
-      let path = this.selectedPort
-      let port = new serialPort(path, { baudRate: 115200 });
-      await this.$store.dispatch('serialPort/setPort', this.selectedPort);
-      this.$router.push({ path: "main" });
-      //const parser = port.pipe(new Delimiter({ delimiter: [255, 255] }))
-     // await this.$store.dispatch('serialPort/open', this.selectedPort);
-      
-      port.on('data', (data) => {
-        let res = engineState.read(data.reverse(), 0)
-        console.log(data)
-        console.log(8000000 / (res.rpm * 2))
-      })
+      this.errorMsg = '';
+      let res = await SerialComm.open(this.selectedPort)
+      if (!res.open) {
+        this.errorMsg = res.msg;
+      } else {
+              this.$router.push({ path: "main" });
+      }
+
+      //SerialComm.close();
+
+      // port.on('data', (data) => {
+      //   let res = engineState.read(data.reverse(), 0)
+      //   console.log(8000000 / (res.rpm * 2))
+      // })
     }
-      //this.$router.push({ path: "main" });
   }
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.port-selector {
+  &-body {
+    padding: 20px;
+    text-align: center;
+  }
+  &-title {
+    font-size: xx-large;
+  }
+  &-list {
+    text-align: center;
+  }
+  &-text {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  &-wrapper-inline{
+    display: inline-block;
+    padding: 10px;
+  }
+  &-wrapper-block{
+    display: block;
+  }
+  &-err-msg {
+    max-width: 400px;
+  }
+}
+
 </style>
