@@ -60,15 +60,9 @@ export default {
       if (!res.open) {
         this.errorMsg = res.msg;
       } else {
-              this.$router.push({ path: "main" });
+        SerialComm.startListen();
+        this.$router.push({ path: "main" });
       }
-
-      //SerialComm.close();
-
-      // port.on('data', (data) => {
-      //   let res = engineState.read(data.reverse(), 0)
-      //   console.log(8000000 / (res.rpm * 2))
-      // })
     }
   }
 };

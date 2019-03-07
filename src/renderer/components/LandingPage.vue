@@ -3,7 +3,6 @@
     <h1 v-on:click="updateData()">{{msg}}</h1>
     <button v-on:click="test()">test</button>
     <button v-on:click="serial()">test serial</button>
-    <h1 class="test-1" v-bind:style="{'left': aaa + 'px'}">{{aaa}}</h1>
     <modal-window>
       <map-table 
         :scale-text="scaleText"
@@ -12,7 +11,7 @@
         :min-val="minVal"
         :max-val="maxVal"
         :map-data="fuelMap"
-        :hi-light-cel="val"
+        :hi-light-cel="curSell"
         @change="onChange($event)"
       ></map-table>
     </modal-window>
@@ -25,18 +24,7 @@ import modalWindow from "./modalWindow.vue";
 import MapTable from "./mapTable.vue";
 import SerialComm from '../services/SerialComm';
 import Helpers from '../services/Helpers';
-
-import { setInterval } from "timers";
-
 import FileService from "../services/FileService.js";
-
-const Struct = require('js-struct/lib/Struct')
-const Type = require('js-struct/lib/Type')
-const engineState = Struct([
-  Type.uint8('with'),
-  Type.uint8('load'),
-  Type.uint32('rpm'),
-]);
 
 const fileServiceService = new FileService();
 
@@ -48,11 +36,9 @@ export default {
   },
   data() {
     return {
-      aaa: 0,
-      mapReady: false,
       scaleText: "RPM/LOAD",
       msg: "Fuel map",
-      val: "s",
+      curSell: "",
       axisValX: {
         start: 0,
         step: 10,
@@ -65,7 +51,6 @@ export default {
       },
       minVal: 0,
       maxVal: 25,
-      timer: Object,
       fuelMap: [
         [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
         [100, 200, 300, 23, 123, 123, 312, 312, 3, 123, 123],
@@ -114,23 +99,29 @@ export default {
       }
     },
     onChange(e) {
-
+      console.log(e, 'on change')
     },
 
     serial() {
-      SerialComm.port.on('data', (data) => {
-        let res = engineState.read(data.reverse(), 0)
-        console.log(8000000 / (res.rpm * 2))
+      let closesVal = [];
+      let iterator = this.axisValY.start;
+      for (let i = 0; i < this.fuelMap.length; i++ ) {
+        closesVal.push(iterator);
+        iterator += this.axisValY.step;
+      }
+      SerialComm.events.$on('state', res => {
+        this.curSell = Helpers.closestIndex(closesVal, 8000000 / (res.rpm * 2)) + "-" + 0;
+      });
+      SerialComm.events.$on('test', (data) => {
+        console.log(data);
       })
     },
 
     increment() {
       let values = [10, 12, 5, 9, 13, 6];
       console.log(Helpers.closest(values, 4));
-
-
       //this.setMapData(3, 3, Math.floor(Math.random() * 100));
-      this.val =
+      this.curSell =
         Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
       // fileServiceService.saveFile(this.fuelMap);
     }
