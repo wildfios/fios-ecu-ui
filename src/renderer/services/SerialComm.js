@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import { reject } from 'bluebird-lst';
 
 const serialPort = require('serialport');
 const Struct = require('js-struct/lib/Struct')
@@ -52,20 +51,53 @@ export default class SerialComm{
         }
     }
 
-    static startListen() {
-        SerialComm.port.on('data', (data) => {
-            let res = engineState.read(data.reverse(), 0)
-            if (res.cmdCode === 0x01) {
-                this.events.$emit('state', res);
-            }
-        });
-
-        this.testEvent();
+    static send () {
+        this.port.write("sdfdfsdf\n");    
     }
 
-    static testEvent() {
-        setInterval(() => {
-            this.events.$emit('test', {'msg': 'test data'});
-        }, 5000)    
+    /* Helper function for decoding data for ecu */
+    static decodeECUDataPack(inputData) {
+        let decodedBuffer = [];
+        let res = 0;
+        for (let i = 0; i < inputData.length; i += 2) {
+          res = ((inputData[i] - 0x10) * 0x10) + (inputData[i + 1] - 0x10);
+          decodedBuffer.push(res);
+        }
+        return decodedBuffer;
+    }
+
+    /* Helper function for encoding data for ecu */
+    static encodeECUDataPack(inputData) {
+        let encodedRes = [];
+        inputData.map(res => {
+          encodedRes.push(Math.floor(res / 0x10 + 0x10));
+          encodedRes.push(Math.floor(res % 0x10 + 0x10));
+        })
+        encodedRes.push(0x0a);
+        return encodedRes;
+    }
+
+    /* Helper function for login HEX data */
+    static buf2hex(buffer) {
+        return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+    }
+
+    static arrayTo2d(source) {
+        let processed = [];
+        while(source.length > 0) {
+            processed.push(source.splice(0, 11));
+        }
+        return processed;
+    }
+
+    static startListen() {
+        SerialComm.port.on('data', (data) => {
+            let res = Array.from(data); // this.decodeECUDataPack(data);
+            if (res[0] == 70) {
+                res.splice(0, 1);
+                this.events.$emit('data', this.arrayTo2d(res));
+            }
+           this.events.$emit('state', res);
+        });
     }
 }

@@ -33,9 +33,6 @@
 import { mapState } from 'vuex';
 import { mapGetters } from 'vuex';
 import SerialComm from '../services/SerialComm'
-import { throws } from 'assert';
-
-const serialPort = require("serialport");
 
 export default {
   name: "port-selector",

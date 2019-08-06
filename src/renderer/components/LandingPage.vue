@@ -99,7 +99,8 @@ export default {
       }
     },
     onChange(e) {
-      console.log(e, 'on change')
+      console.log(e, 'on change');
+      SerialComm.send();
     },
 
     serial() {
@@ -112,7 +113,8 @@ export default {
       SerialComm.events.$on('state', res => {
         this.curSell = Helpers.closestIndex(closesVal, 8000000 / (res.rpm * 2)) + "-" + 0;
       });
-      SerialComm.events.$on('test', (data) => {
+      SerialComm.events.$on('data', (data) => {
+        this.fuelMap = data;
         console.log(data);
       })
     },
