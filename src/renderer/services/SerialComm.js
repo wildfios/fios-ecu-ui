@@ -96,8 +96,9 @@ export default class SerialComm{
             if (res[0] == 70) {
                 res.splice(0, 1);
                 this.events.$emit('data', this.arrayTo2d(res));
+            } else {
+                this.events.$emit('state', res);
             }
-           this.events.$emit('state', res);
         });
     }
 }

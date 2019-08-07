@@ -1,7 +1,5 @@
 <template>
   <div>
-    <h1 v-on:click="updateData()">{{msg}}</h1>
-    <button v-on:click="test()">test</button>
     <button v-on:click="serial()">test serial</button>
     <modal-window>
       <map-table 
@@ -51,7 +49,59 @@ export default {
       },
       minVal: 0,
       maxVal: 25,
-      fuelMap: [
+      fuelMap: []
+    };
+  },
+  created() {
+    let closesVal = [];
+    let iterator = this.axisValY.start;
+    for (let i = 0; i < this.fuelMap.length; i++ ) {
+      closesVal.push(iterator);
+      iterator += this.axisValY.step;
+    }
+    SerialComm.send();
+    SerialComm.events.$on('data', (data) => {
+      this.fuelMap = data;
+    });
+    SerialComm.events.$on('state', res => {
+      this.curSell = Helpers.closestIndex(closesVal, 8000000 / (res.rpm * 2)) + "-" + 0;
+    });
+  },
+  methods: {
+    /* Force set data to map */
+    setMapData(i, j, data) {
+      this.$set(this.fuelMap[i], j, data);
+    },
+
+    onChange(e) {
+      console.log(e, 'on change');
+      SerialComm.send();
+    },
+
+    increment() {
+      let values = [10, 12, 5, 9, 13, 6];
+      // this.setMapData(3, 3, Math.floor(Math.random() * 100));
+      this.curSell = Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
+    }
+  }
+};
+</script>
+
+<style scoped>
+.test-1 {
+  position: absolute;
+  transition: left 100ms;
+}
+</style>
+
+
+
+<!--
+    <h1 v-on:click="updateData()">{{msg}}</h1>
+    <button v-on:click="test()">test</button>
+
+      // fileServiceService.saveFile(this.fuelMap);
+
         [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
         [100, 200, 300, 23, 123, 123, 312, 312, 3, 123, 123],
         [100, 200, 300, 123, 123, 12, 312, 312, 3, 123, 123],
@@ -71,10 +121,7 @@ export default {
         [100, 300, 23, 123, 123, 12, 312, 312, 3, 123, 123],
         [500, 600, 700, 23, 123, 123, 12, 312, 3, 123, 123],
         [500, 600, 700, 23, 123, 123, 12, 312, 3, 123, 123]
-      ]
-    };
-  },
-  methods: {
+
     test() {
       const self = this;
       fileServiceService.readFile(function(err, buf) {
@@ -84,9 +131,7 @@ export default {
         self.fuelMap = JSON.parse(buf);
       });
     },
-    setMapData(i, j, data) {
-      this.$set(this.fuelMap[i], j, data);
-    },
+
     updateData() {
       var x = 1,
         y = 1;
@@ -98,42 +143,4 @@ export default {
         }
       }
     },
-    onChange(e) {
-      console.log(e, 'on change');
-      SerialComm.send();
-    },
-
-    serial() {
-      let closesVal = [];
-      let iterator = this.axisValY.start;
-      for (let i = 0; i < this.fuelMap.length; i++ ) {
-        closesVal.push(iterator);
-        iterator += this.axisValY.step;
-      }
-      SerialComm.events.$on('state', res => {
-        this.curSell = Helpers.closestIndex(closesVal, 8000000 / (res.rpm * 2)) + "-" + 0;
-      });
-      SerialComm.events.$on('data', (data) => {
-        this.fuelMap = data;
-        console.log(data);
-      })
-    },
-
-    increment() {
-      let values = [10, 12, 5, 9, 13, 6];
-      console.log(Helpers.closest(values, 4));
-      //this.setMapData(3, 3, Math.floor(Math.random() * 100));
-      this.curSell =
-        Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
-      // fileServiceService.saveFile(this.fuelMap);
-    }
-  }
-};
-</script>
-
-<style scoped>
-.test-1 {
-  position: absolute;
-  transition: left 100ms;
-}
-</style>
+-->
