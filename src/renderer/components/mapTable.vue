@@ -93,10 +93,17 @@ export default {
         return;
       }
       if ('Enter' == event.key) {
+        let value =  parseInt(event.target.value);
+        let packType = 'B'
+        if (value > 255) {
+          packType = 'I';
+        }
         this.$emit('change', {
-            value: event.target.value,
+            type: packType,
+            mapIndex: 1,   /* Todo: change this */
             cordX: x,
-            cordY: y
+            cordY: y,
+            value: parseInt(event.target.value)
           });
         event.target.blur();
         return;

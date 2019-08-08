@@ -48,7 +48,7 @@ export default {
         postfix: " rpm"
       },
       minVal: 0,
-      maxVal: 25,
+      maxVal: 1000,
       fuelMap: []
     };
   },
@@ -59,7 +59,7 @@ export default {
       closesVal.push(iterator);
       iterator += this.axisValY.step;
     }
-    SerialComm.send();
+    SerialComm.send('run\n');
     SerialComm.events.$on('data', (data) => {
       this.fuelMap = data;
     });
@@ -73,14 +73,14 @@ export default {
       this.$set(this.fuelMap[i], j, data);
     },
 
+    /* Map data change */
     onChange(e) {
-      console.log(e, 'on change');
-      SerialComm.send();
+      SerialComm.editMap(e);
     },
 
     increment() {
       let values = [10, 12, 5, 9, 13, 6];
-      // this.setMapData(3, 3, Math.floor(Math.random() * 100));
+      this.setMapData(3, 3, Math.floor(Math.random() * 100));
       this.curSell = Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
     }
   }
@@ -143,4 +143,13 @@ export default {
         }
       }
     },
+
+    const Struct = require('js-struct/lib/Struct')
+const Type = require('js-struct/lib/Type')
+const engineState = Struct([
+    Type.uint8('with'),
+    Type.uint8('load'),
+    Type.uint32('rpm'),
+    Type.uint8('cmdCode'),
+  ]);
 -->

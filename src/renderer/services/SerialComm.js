@@ -1,8 +1,9 @@
 import Vue from 'vue'
 
 const serialPort = require('serialport');
-const Struct = require('js-struct/lib/Struct')
-const Type = require('js-struct/lib/Type')
+const Struct = require('js-struct/lib/Struct');
+const Type = require('js-struct/lib/Type');
+
 const engineState = Struct([
     Type.uint8('with'),
     Type.uint8('load'),
@@ -51,8 +52,33 @@ export default class SerialComm{
         }
     }
 
-    static send () {
-        this.port.write("sdfdfsdf\n");    
+    static send (data = []) {
+        //console.log(data);
+        this.port.write(data);    
+    }
+
+    static editMap(data = []) {
+        let serilized = this.serializeArray(Object.values(data));
+        console.log(serilized);
+        this.port.write(serilized);
+    }
+
+    /* Helper serializer */
+    static serializeArray(src) {
+        let serialized = src.map(res => {
+            if (typeof res == 'string') {
+                return res.charCodeAt(0);
+            } else {
+                if (res > 255) {
+                    console.log(res, [res >> 8, res && 0xff])
+                    return [res >> 8, res];
+                }
+                return res;
+            }
+        });
+        serialized.push(0x0a);
+        serialized = serialized.reduce((acc, val) => acc.concat(val), []);
+        return serialized;
     }
 
     /* Helper function for decoding data for ecu */
@@ -102,3 +128,22 @@ export default class SerialComm{
         });
     }
 }
+
+
+
+/*
+
+        let editData = Struct([
+            Type.uint8('type'),
+            Type.uint8('tablePointer'),
+            Type.uint8('xArd'),
+            Type.uint8('yArd'),
+            Type.uint16('value')
+        ]);
+        editData.type  = 'I';
+        editData.tablePointer = 0;
+        editData.xAdr  = data.cordX;
+        editData.yAdr  = data.cordY;
+        editData.value = data.value;
+
+*/
