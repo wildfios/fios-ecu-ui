@@ -52,15 +52,33 @@ export default class SerialComm{
         }
     }
 
-    static send (data = []) {
-        //console.log(data);
-        this.port.write(data);    
+    static fetchMap(index) {
+        let pack = [70, 69, index, 10];
+        this.port.write(pack, err => {
+            if (err) {
+                return console.log("Error in port operation");
+            }
+        });
+        console.log("Map was fetched, index:", index);
+    }
+
+    static upLaodMap(newMap) {
+        let serialized  = newMap; /* encodeECUDataPack(newMap) */
+        serialized = serialized.reduce((acc, val) => acc.concat(val), []);
+        this.port.write([77, serialized.length >> 8, serialized & 0xff].concat(serialized).concat(0x0a), err => {
+            if (err) {
+                return console.log("Error in port operation");
+            }        
+        });
     }
 
     static editMap(data = []) {
         let serilized = this.serializeArray(Object.values(data));
-        console.log(serilized);
-        this.port.write(serilized);
+        this.port.write(serilized, err => {
+            if (err) {
+                return console.log("Error in port operation");
+            }
+        });
     }
 
     /* Helper serializer */
@@ -70,8 +88,7 @@ export default class SerialComm{
                 return res.charCodeAt(0);
             } else {
                 if (res > 255) {
-                    console.log(res, [res >> 8, res && 0xff])
-                    return [res >> 8, res];
+                    return [res >> 8, res & 0xff];
                 }
                 return res;
             }
@@ -108,6 +125,7 @@ export default class SerialComm{
         return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
     }
 
+    /* Convertor of 1d array to 2d readed from ECU flash */
     static arrayTo2d(source) {
         let processed = [];
         while(source.length > 0) {
@@ -128,22 +146,3 @@ export default class SerialComm{
         });
     }
 }
-
-
-
-/*
-
-        let editData = Struct([
-            Type.uint8('type'),
-            Type.uint8('tablePointer'),
-            Type.uint8('xArd'),
-            Type.uint8('yArd'),
-            Type.uint16('value')
-        ]);
-        editData.type  = 'I';
-        editData.tablePointer = 0;
-        editData.xAdr  = data.cordX;
-        editData.yAdr  = data.cordY;
-        editData.value = data.value;
-
-*/

@@ -1,15 +1,18 @@
 <template>
   <div>
-    <button v-on:click="serial()">test serial</button>
-    <modal-window>
+    <button v-on:click="uploadMapTest()">Store mew map</button>
+    <button v-on:click="loadMapTest()">Load mew map</button>
+    <modal-window v-for="map in maps"
+      :window-title="map.msg">
       <map-table 
-        :scale-text="scaleText"
-        :axis-val-x="axisValX"
-        :axis-val-y="axisValY"
-        :min-val="minVal"
-        :max-val="maxVal"
-        :map-data="fuelMap"
-        :hi-light-cel="curSell"
+        :scale-text="map.scaleText"
+        :axis-val-x="maps[0].axisValX"
+        :axis-val-y="maps[0].axisValY"
+        :min-val="maps[0].minVal"
+        :max-val="map.maxVal"
+        :map-data="maps[0].fuelMap"
+        :hi-light-cel="maps[0].curSell"
+        :map-index="maps[0].testIndex"
         @change="onChange($event)"
       ></map-table>
     </modal-window>
@@ -33,44 +36,48 @@ export default {
     modalWindow
   },
   data() {
-    return {
-      scaleText: "RPM/LOAD",
-      msg: "Fuel map",
-      curSell: "",
-      axisValX: {
-        start: 0,
-        step: 10,
-        postfix: "%"
-      },
-      axisValY: {
-        start: 800,
-        step: 400,
-        postfix: " rpm"
-      },
-      minVal: 0,
-      maxVal: 1000,
-      fuelMap: []
+    return { 
+      maps: [{
+        testIndex: 1, /* Remove this */
+        scaleText: "RPM/LOAD",
+        msg: "Fuel map",
+        curSell: "",
+        axisValX: {
+          start: 0,
+          step: 10,
+          postfix: "%"
+        },
+        axisValY: {
+          start: 800,
+          step: 400,
+          postfix: " rpm"
+        },
+        minVal: 0,
+        maxVal: 1000,
+        fuelMap: []
+      }]
     };
   },
   created() {
     let closesVal = [];
-    let iterator = this.axisValY.start;
-    for (let i = 0; i < this.fuelMap.length; i++ ) {
+    let iterator = this.maps[0].axisValY.start;
+    for (let i = 0; i < this.maps[0].fuelMap.length; i++ ) {
       closesVal.push(iterator);
-      iterator += this.axisValY.step;
+      iterator += this.maps[0].axisValY.step;
     }
-    SerialComm.send('run\n');
+    SerialComm.fetchMap(1);   /* TODO: Fetch index should be changed */
     SerialComm.events.$on('data', (data) => {
-      this.fuelMap = data;
+      this.maps[0].fuelMap = data;
     });
     SerialComm.events.$on('state', res => {
+      console.log(res);
       this.curSell = Helpers.closestIndex(closesVal, 8000000 / (res.rpm * 2)) + "-" + 0;
     });
   },
   methods: {
     /* Force set data to map */
     setMapData(i, j, data) {
-      this.$set(this.fuelMap[i], j, data);
+      this.$set(this.maps[0].fuelMap[i], j, data);
     },
 
     /* Map data change */
@@ -79,9 +86,37 @@ export default {
     },
 
     increment() {
-      let values = [10, 12, 5, 9, 13, 6];
       this.setMapData(3, 3, Math.floor(Math.random() * 100));
-      this.curSell = Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
+      this.maps[0].curSell = Math.floor(Math.random() * 10) + "-" + Math.floor(Math.random() * 10);
+    },
+
+    loadMapTest() {
+      SerialComm.fetchMap(1);
+    },
+
+    uploadMapTest() {
+      let map = [
+        [100, 200, 30,  23, 123,  12, 32, 32,  3, 123, 123],
+        [100, 200, 30,  23, 123, 123, 32, 32,  3, 123, 123],
+        [100, 200, 30, 123, 123,  12, 32, 32,  3, 123, 123],
+        [100, 200, 30,  23, 123, 123, 12, 31, 12,   3, 123],
+        [100, 200, 23, 123, 123,  12, 32, 32,  3, 123, 123],
+        [100, 200, 30, 123, 123,  12, 32, 31,  3, 123, 123],
+        [100, 200, 30,  23, 123,  12, 32, 31,  3, 123, 123],
+        [100, 200, 30,  23, 123, 123, 32, 31,  3, 123, 123],
+        [100, 200, 30,  23, 123,  12, 32, 31,  3, 123, 123],
+        [100,  42, 23, 123, 123,  12, 32, 31,  3, 123, 123],
+        [ 50,  60, 70,  23, 123, 123, 12, 32,  3, 123, 123],
+        [100, 200, 23, 123, 123,  12, 32, 12,  3, 123, 123],
+        [100, 200, 30, 123, 123,  12, 32, 12,  3, 123, 123],
+        [100, 200, 30,  23, 123,  12, 32, 12,  3, 123, 123],
+        [100, 200, 30,  23, 123, 123, 32, 12,  3, 123, 123],
+        [100,  20, 30,  23, 123,  12, 32, 32,  3, 123, 123],
+        [100,  30,  2, 123, 123,  12, 32, 32,  3, 123, 123],
+        [ 50,  60, 70,  23, 123, 123, 12, 32,  3, 123, 123],
+        [ 50,  60, 70,  23, 123, 123, 12, 32,  3, 123, 123]
+      ];
+      SerialComm.upLaodMap(map);
     }
   }
 };

@@ -55,7 +55,8 @@ export default {
     minVal: Number,
     maxVal: Number,
     hiLightCel: String,
-    mapData: Array
+    mapData: Array,
+    mapIndex: Number
   },
   data() {
     return {};
@@ -100,7 +101,7 @@ export default {
         }
         this.$emit('change', {
             type: packType,
-            mapIndex: 1,   /* Todo: change this */
+            mapIndex: this.mapIndex,
             cordX: x,
             cordY: y,
             value: parseInt(event.target.value)
