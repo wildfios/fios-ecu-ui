@@ -9,7 +9,18 @@ const engineState = Struct([
     Type.uint8('load'),
     Type.uint32('rpm'),
     Type.uint8('cmdCode'),
-  ]);
+]);
+
+const mapData = Struct([
+    Type.uint8('type'),
+    Type.uint16('xStart'),
+    Type.uint16('xStep'),
+    Type.uint16('yStart'),
+    Type.uint16('yStep'),
+    Type.uint8('demention'),
+    Type.uint8('dementionY'),
+    Type.uint8('index'),
+]);
 
 export default class SerialComm{
     portList = [];
@@ -53,8 +64,8 @@ export default class SerialComm{
     }
 
     static fetchMap(index) {
-        let pack = [70, 69, index, 10];
-        this.port.write(pack, err => {
+        let pack = [70, index, 10];
+        this.port.write(this.encodeECUDataPack(pack), err => {
             if (err) {
                 return console.log("Error in port operation");
             }
@@ -74,7 +85,7 @@ export default class SerialComm{
 
     static editMap(data = []) {
         let serilized = this.serializeArray(Object.values(data));
-        this.port.write(serilized, err => {
+        this.port.write(this.encodeECUDataPack(serilized), err => {
             if (err) {
                 return console.log("Error in port operation");
             }
@@ -126,22 +137,25 @@ export default class SerialComm{
     }
 
     /* Convertor of 1d array to 2d readed from ECU flash */
-    static arrayTo2d(source) {
+    static arrayTo2d(source, demention) {
         let processed = [];
         while(source.length > 0) {
-            processed.push(source.splice(0, 11));
+            processed.push(source.splice(0, demention));
         }
         return processed;
     }
 
     static startListen() {
         SerialComm.port.on('data', (data) => {
-            let res = Array.from(data); // this.decodeECUDataPack(data);
-            if (res[0] == 70) {
-                res.splice(0, 1);
-                this.events.$emit('data', this.arrayTo2d(res));
+            let decoded = Array.from(this.decodeECUDataPack(data));
+            if (decoded[0] == 70) {
+                let meta = mapData.read(decoded.splice(0, 12), 0);
+                this.events.$emit('data', {
+                    'map': this.arrayTo2d(decoded, meta.demention), 
+                    'meta': meta
+                });
             } else {
-                this.events.$emit('state', res);
+                this.events.$emit('state', decoded);
             }
         });
     }

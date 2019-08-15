@@ -1,7 +1,13 @@
 <template>
   <div>
+    <!--div class="side-bar-tree">
+    </div-->
+    <button @click="$refs.fileInput.click()" class="trigger">Click me</button>
+
     <button v-on:click="uploadMapTest()">Store mew map</button>
     <button v-on:click="loadMapTest()">Load mew map</button>
+    <button v-on:click="saveMapTest()">Save mew map</button>
+    <button v-on:click="openMapTest()">Open mew map</button>
     <modal-window v-for="map in maps"
       :window-title="map.msg">
       <map-table 
@@ -38,7 +44,7 @@ export default {
   data() {
     return { 
       maps: [{
-        testIndex: 1, /* Remove this */
+        index: 1, /* Remove this */
         scaleText: "RPM/LOAD",
         msg: "Fuel map",
         curSell: "",
@@ -53,6 +59,7 @@ export default {
           postfix: " rpm"
         },
         minVal: 0,
+        xDemention: 11,
         maxVal: 1000,
         fuelMap: []
       }]
@@ -67,7 +74,13 @@ export default {
     }
     SerialComm.fetchMap(1);   /* TODO: Fetch index should be changed */
     SerialComm.events.$on('data', (data) => {
-      this.maps[0].fuelMap = data;
+      this.maps[data.meta.index].index = data.meta.index;
+      this.maps[data.meta.index].fuelMap = data.map;
+      this.maps[data.meta.index].axisValX.start = data.meta.xStart;
+      this.maps[data.meta.index].axisValX.step = data.meta.xStep;
+      this.maps[data.meta.index].axisValY.start = data.meta.yStart;
+      this.maps[data.meta.index].axisValY.step = data.meta.yStep;
+      this.maps[data.meta.index].xDemention = data.meta.demention;
     });
     SerialComm.events.$on('state', res => {
       console.log(res);
@@ -92,6 +105,20 @@ export default {
 
     loadMapTest() {
       SerialComm.fetchMap(1);
+    },
+
+    saveMapTest() {
+      fileServiceService.saveFile(this.maps);
+    },
+
+    openMapTest() {
+      const self = this;
+      fileServiceService.readFile(function(err, buf) {
+        if (err) {
+          return console.log(err);
+        }
+        self.maps = JSON.parse(buf);
+      });
     },
 
     uploadMapTest() {
@@ -126,6 +153,13 @@ export default {
 .test-1 {
   position: absolute;
   transition: left 100ms;
+}
+
+.side-bar-tree {
+  position: absolute;
+  width: 300px;
+  height: 100%;
+  background: lightgray;
 }
 </style>
 
