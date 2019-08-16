@@ -1,6 +1,7 @@
 import Vue from 'vue'
 
 const serialPort = require('serialport');
+const delimiter = require('@serialport/parser-delimiter');
 const Struct = require('js-struct/lib/Struct');
 const Type = require('js-struct/lib/Type');
 
@@ -25,6 +26,7 @@ const mapData = Struct([
 export default class SerialComm{
     portList = [];
     port = [];
+    parser = [];
     dummy = '';
     static events = new Vue();
 
@@ -43,6 +45,7 @@ export default class SerialComm{
                 if (err) {
                     resolve({open: false, msg: err});
                 } else {
+                    this.parser = this.port.pipe(new delimiter({ delimiter: '\n' }));
                     resolve({open: this.port.isOpen});
                 }
             });
@@ -73,10 +76,24 @@ export default class SerialComm{
         console.log("Map was fetched, index:", index);
     }
 
-    static upLaodMap(newMap) {
-        let serialized  = newMap; /* encodeECUDataPack(newMap) */
-        serialized = serialized.reduce((acc, val) => acc.concat(val), []);
-        this.port.write([77, serialized.length >> 8, serialized & 0xff].concat(serialized).concat(0x0a), err => {
+    static upLaodMap(data) {
+        let yDemention = data.fuelMap.length - 1; 
+        let serialized = data.fuelMap.reduce((acc, val) => acc.concat(val), []);
+        let encoded = [
+            77, 
+            data.axisValX.start >> 8,
+            data.axisValX.start & 0xff,
+            data.axisValX.step >> 8,
+            data.axisValX.step & 0xff,
+            data.axisValY.start >> 8,
+            data.axisValY.start & 0xff,
+            data.axisValY.step >> 8,
+            data.axisValY.step & 0xff,
+            data.xDemention,
+            yDemention,
+            data.index,
+        ].concat(serialized);
+        this.port.write(this.encodeECUDataPack(encoded), err => {
             if (err) {
                 return console.log("Error in port operation");
             }        
@@ -146,7 +163,7 @@ export default class SerialComm{
     }
 
     static startListen() {
-        SerialComm.port.on('data', (data) => {
+        SerialComm.parser.on('data', (data) => {
             let decoded = Array.from(this.decodeECUDataPack(data));
             if (decoded[0] == 70) {
                 let meta = mapData.read(decoded.splice(0, 12), 0);
