@@ -171,8 +171,10 @@ export default class SerialComm{
                     'map': this.arrayTo2d(decoded, meta.demention), 
                     'meta': meta
                 });
-            } else {
+            } else if (decoded[0] == 0x53) { // S => State 0x53
                 this.events.$emit('state', decoded);
+            } else {
+                console.log('Error in pack classification', this.buf2hex(decoded));
             }
         });
     }
