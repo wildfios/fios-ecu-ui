@@ -43,26 +43,48 @@ export default {
   },
   data() {
     return { 
-      maps: [{
-        index: 0, /* Remove this */
-        scaleText: "RPM/LOAD",
-        msg: "Fuel map",
-        curSell: "",
-        axisValX: {
-          start: 0,
-          step: 10,
-          postfix: "%"
+      maps: {
+        '0':  {
+          index: 0, /* Remove this */
+          scaleText: "RPM/LOAD",
+          msg: "Fuel map",
+          curSell: "",
+          axisValX: {
+            start: 0,
+            step: 10,
+            postfix: "%"
+          },
+          axisValY: {
+            start: 800,
+            step: 400,
+            postfix: " rpm"
+          },
+          minVal: 0,
+          xDemention: 11,
+          maxVal: 1000,
+          fuelMap: []
         },
-        axisValY: {
-          start: 800,
-          step: 400,
-          postfix: " rpm"
+        '1':  {
+          index: 0, /* Remove this */
+          scaleText: "RPM/LOAD",
+          msg: "Fuel map",
+          curSell: "",
+          axisValX: {
+            start: 0,
+            step: 10,
+            postfix: "%"
+          },
+          axisValY: {
+            start: 800,
+            step: 400,
+            postfix: " rpm"
+          },
+          minVal: 0,
+          xDemention: 11,
+          maxVal: 1000,
+          fuelMap: []
         },
-        minVal: 0,
-        xDemention: 11,
-        maxVal: 1000,
-        fuelMap: []
-      },]
+      }
     };
   },
   created() {

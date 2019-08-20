@@ -20,7 +20,7 @@ const mapData = Struct([
     Type.uint16('yStep'),
     Type.uint8('demention'),
     Type.uint8('dementionY'),
-    Type.uint8('index'),
+    Type.uint16('index'),
 ]);
 
 export default class SerialComm{
@@ -91,7 +91,8 @@ export default class SerialComm{
             data.axisValY.step & 0xff,
             data.xDemention,
             yDemention,
-            data.index,
+            data.index >> 8,
+            data.index & 0xff,
         ].concat(serialized);
         this.port.write(this.encodeECUDataPack(encoded), err => {
             if (err) {
@@ -166,7 +167,7 @@ export default class SerialComm{
         SerialComm.parser.on('data', (data) => {
             let decoded = Array.from(this.decodeECUDataPack(data));
             if (decoded[0] == 70) {
-                let meta = mapData.read(decoded.splice(0, 12), 0);
+                let meta = mapData.read(decoded.splice(0, 13), 0);
                 this.events.$emit('data', {
                     'map': this.arrayTo2d(decoded, meta.demention), 
                     'meta': meta
