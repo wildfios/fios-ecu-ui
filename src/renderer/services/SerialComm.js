@@ -174,6 +174,7 @@ export default class SerialComm{
                 });
             } else if (decoded[0] == 0x53) { // S => State 0x53
                 this.events.$emit('state', decoded);
+                console.log(decoded);
             } else {
                 console.log('Error in pack classification', this.buf2hex(decoded));
             }
