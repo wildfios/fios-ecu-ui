@@ -53,7 +53,7 @@ export default {
     },
     async tryToConnect () {
       this.errorMsg = '';
-      let res = await SerialComm.open(this.selectedPort)
+      let res = await SerialComm.open(this.selectedPort);
       if (!res.open) {
         this.errorMsg = res.msg;
       } else {
