@@ -61,7 +61,7 @@ export default {
           },
           minVal: 0,
           xDemention: 11,
-          maxVal: 1000,
+          maxVal: 255,
           fuelMap: []
         },
         '1':  {
@@ -81,7 +81,7 @@ export default {
           },
           minVal: 0,
           xDemention: 11,
-          maxVal: 1000,
+          maxVal: 255,
           fuelMap: []
         },
       }
@@ -144,7 +144,7 @@ export default {
     },
 
     uploadMapTest() {
-      SerialComm.upLaodMap(this.maps[1]);
+      SerialComm.upLaodMap(this.maps[0]);
     }
   }
 };

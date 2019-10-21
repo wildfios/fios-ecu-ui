@@ -1,10 +1,12 @@
 <template>
   <div>
     <div 
-      v-bind:style="{'left': leftPos + 'px', 'top': topPos + 'px'}"
-      class="window-body"  
+      v-bind:style="{'left': leftPos + 'px', 'top': topPos + 'px', 'z-index': zIndex}"
+      class="window-body"
+      v-on:mousedown="onSetFocuse()"
     >
-      <div class="window-header" v-on:mousedown="onDragStart($event)">
+      <div class="window-header" 
+        v-on:mousedown="onDragStart($event)">
         <p class="window-title-text">{{windowTitle}}</p>
       </div>
       <div>
@@ -15,6 +17,8 @@
 </template>
 
 <script>
+import EventBus from './../main';
+
 export default {
   name: 'modal-window',
   data() {
@@ -23,10 +27,23 @@ export default {
       topPos: 10,
       leftPosStart: 0,
       topPosStart: 0,
-      windowTitle: 'Title'
+      windowTitle: 'Title',
+      zIndex: 500
     };
   },
+  mounted() {
+    EventBus.$on('WND_FOCUSED_ID', (uid) => {
+      if (uid == this._uid) {
+        this.zIndex = 1000;
+      } else {
+        this.zIndex = 500;
+      }
+    });
+  },
   methods: {
+    onSetFocuse() {
+      EventBus.$emit('WND_FOCUSED_ID', this._uid);
+    },
     onDragStart(event) {
       event.preventDefault();
       this.leftPosStart = event.clientX;

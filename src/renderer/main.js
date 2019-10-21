@@ -21,6 +21,9 @@ Vue.config.productionTip = false
 
 sync(store, router);
 
+const EventBus = new Vue();
+export default EventBus;
+
 /* eslint-disable no-new */
 new Vue({
   components: { App },
