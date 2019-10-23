@@ -6,8 +6,8 @@
             {{scaleText}}
           </div>
         </div>
-        <div v-for="(el, indexCol) in mapData[0]" 
-            class="map-cell-frame" 
+        <div v-for="(el, indexCol) in mapData[0]"
+            class="map-cell-frame"
             :key="'key-col-' + indexCol"
             :id="'map-col-' + indexCol"
           >
@@ -16,8 +16,8 @@
           </div>
         </div>
       </div>
-      <div v-for="(mapRow, indexRow) in mapData" 
-          class="map-table-row" 
+      <div v-for="(mapRow, indexRow) in mapData"
+          class="map-table-row"
           :key="'key-row-' + indexRow"
         >
         <div class="map-cell-frame scale"
@@ -29,15 +29,17 @@
         </div>
         <div v-for="(el, indexCol) in mapRow" 
           class="map-cell-frame" 
-          :id="'map' + indexRow + '-' + indexCol" 
-          :key="'map-' + indexRow + '-' + indexCol" 
+          :id="'map' + indexRow + '-' + indexCol"
+          :key="'map-' + indexRow + '-' + indexCol"
           :style="{backgroundColor: 'hsl('+ (250 - (el * (250 / (maxVal - minVal)))) +' , 100%, 65%)'}">
-            <input 
-              class="map-table-cell" 
+            <input
+              class="map-table-cell"
               type="text"
               v-model="mapData[indexRow][indexCol]"
-              v-on:keydown="noKeyDown($event, indexRow, indexCol)"
+              v-on:focus="onSetFocus($event)"
+              v-on:keydown="onKeyDown($event, indexRow, indexCol)"
               v-on:keyup="validateFld($event, indexRow, indexCol)"
+              v-on:blur="onLostFocus($event, indexRow, indexCol)"
             >
         </div>
       </div>
@@ -59,7 +61,9 @@ export default {
     mapIndex: Number
   },
   data() {
-    return {};
+    return {
+      oldCellValue: Number
+    };
   },
   watch: {
     hiLightCel: function(newCel, oldCel) {
@@ -83,7 +87,13 @@ export default {
     getAscii(a) {
       return a.charCodeAt(0);
     },
-    noKeyDown(event, x, y) {
+    onSetFocus(event) {
+      this.oldCellValue = parseInt(event.target.value);
+    },
+    onLostFocus(event, row, col) {
+      this.$set(this.mapData[row], col, this.oldCellValue);
+    },
+    onKeyDown(event, x, y) {
       if (
         (this.getAscii(event.key) > 0x29 && this.getAscii(event.key) < 0x3a) ||
         'ArrowLeft' == event.key ||
@@ -106,6 +116,7 @@ export default {
             cordY: y,
             value: parseInt(event.target.value)
           });
+        this.oldCellValue = parseInt(event.target.value);
         event.target.blur();
         return;
       }

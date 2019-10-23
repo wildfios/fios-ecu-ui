@@ -2,23 +2,22 @@
   <div>
     <!--div class="side-bar-tree">
     </div-->
-    <button @click="$refs.fileInput.click()" class="trigger">Click me</button>
-
     <button v-on:click="uploadMapTest()">Store mew map</button>
     <button v-on:click="loadMapTest()">Load mew map</button>
     <button v-on:click="saveMapTest()">Save mew map</button>
     <button v-on:click="openMapTest()">Open mew map</button>
     <modal-window v-for="map in maps"
-      :window-title="map.msg">
+      :window-title="map.msg"
+      :key="map.map">
       <map-table 
         :scale-text="map.scaleText"
-        :axis-val-x="maps[0].axisValX"
-        :axis-val-y="maps[0].axisValY"
-        :min-val="maps[0].minVal"
+        :axis-val-x="map.axisValX"
+        :axis-val-y="map.axisValY"
+        :min-val="map.minVal"
         :max-val="map.maxVal"
-        :map-data="maps[0].fuelMap"
-        :hi-light-cel="maps[0].curSell"
-        :map-index="maps[0].testIndex"
+        :map-data="map.fuelMap"
+        :hi-light-cel="map.curSell"
+        :map-index="map.testIndex"
         @change="onChange($event)"
       ></map-table>
     </modal-window>
@@ -33,6 +32,7 @@ import SerialComm from '../services/SerialComm';
 import Helpers from '../services/Helpers';
 import FileService from "../services/FileService.js";
 
+const {dialog} = require('electron').remote;
 const fileServiceService = new FileService();
 
 export default {
@@ -44,7 +44,7 @@ export default {
   data() {
     return { 
       maps: {
-        '0':  {
+        0x0000:  {
           index: 0, /* Remove this */
           scaleText: "RPM/LOAD",
           msg: "Fuel map",
@@ -64,7 +64,7 @@ export default {
           maxVal: 255,
           fuelMap: []
         },
-        '1':  {
+        0x0100:  {
           index: 0, /* Remove this */
           scaleText: "RPM/LOAD",
           msg: "Fuel map",
@@ -81,7 +81,7 @@ export default {
           },
           minVal: 0,
           xDemention: 11,
-          maxVal: 255,
+          maxVal: 225,
           fuelMap: []
         },
       }
@@ -94,7 +94,7 @@ export default {
       closesVal.push(iterator);
       iterator += this.maps[0].axisValY.step;
     }
-    SerialComm.fetchMap(1);   /* TODO: Fetch index should be changed */
+    SerialComm.fetchMap(0);   /* TODO: Fetch index should be changed */
     SerialComm.events.$on('data', (data) => {
       this.maps[data.meta.index].index = data.meta.index;
       this.maps[data.meta.index].fuelMap = data.map;
@@ -130,16 +130,37 @@ export default {
     },
 
     saveMapTest() {
-      fileServiceService.saveFile(this.maps);
+      dialog.showSaveDialog({
+          filters: [
+            { name: 'Maps', extensions: ['map'] }
+          ]
+        },
+        (fileName) => {
+          if (fileName === undefined){
+            return;
+          }
+          fileServiceService.saveFile(fileName, this.maps);
+        });
     },
 
     openMapTest() {
       const self = this;
-      fileServiceService.readFile(function(err, buf) {
+      dialog.showOpenDialog({
+        filters: [
+          { name: 'Maps', extensions: ['map'] }
+        ]
+      },
+      (fileName) => {
+        if (fileName === undefined){
+          return;
+        }
+        fileServiceService.readFile(fileName[0], function(err, buf) {
         if (err) {
-          return console.log(err);
+          alert('Can not open file');
         }
         self.maps = JSON.parse(buf);
+      });
+
       });
     },
 
@@ -163,63 +184,3 @@ export default {
   background: lightgray;
 }
 </style>
-
-
-
-<!--
-    <h1 v-on:click="updateData()">{{msg}}</h1>
-    <button v-on:click="test()">test</button>
-
-      // fileServiceService.saveFile(this.fuelMap);
-
-        [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 123, 312, 312, 3, 123, 123],
-        [100, 200, 300, 123, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 123, 12, 312, 312, 3, 123],
-        [100, 200, 23, 123, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 123, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 123, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
-        [100, 300, 23, 123, 123, 12, 312, 312, 3, 123, 123],
-        [500, 600, 700, 23, 123, 123, 12, 312, 3, 123, 123],
-        [100, 200, 23, 123, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 123, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 123, 312, 312, 3, 123, 123],
-        [100, 200, 300, 23, 123, 12, 312, 312, 3, 123, 123],
-        [100, 300, 23, 123, 123, 12, 312, 312, 3, 123, 123],
-        [500, 600, 700, 23, 123, 123, 12, 312, 3, 123, 123],
-        [500, 600, 700, 23, 123, 123, 12, 312, 3, 123, 123]
-
-    test() {
-      const self = this;
-      fileServiceService.readFile(function(err, buf) {
-        if (err) {
-          return console.log(err);
-        }
-        self.fuelMap = JSON.parse(buf);
-      });
-    },
-
-    updateData() {
-      var x = 1,
-        y = 1;
-      for (var i = 0; i < this.fuelMap.length; i++) {
-        x += 0.1;
-        for (var j = 0; j < this.fuelMap[0].length; j++) {
-          y += 0.1;
-          this.setMapData(i, j, Math.floor(x + y));
-        }
-      }
-    },
-
-    const Struct = require('js-struct/lib/Struct')
-const Type = require('js-struct/lib/Type')
-const engineState = Struct([
-    Type.uint8('with'),
-    Type.uint8('load'),
-    Type.uint32('rpm'),
-    Type.uint8('cmdCode'),
-  ]);
--->

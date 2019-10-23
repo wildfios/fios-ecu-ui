@@ -1,17 +1,16 @@
 export default class FileService {
 
-  saveFile(data) {
+  saveFile(filename, data) {
     const fs = require('fs');
-    fs.writeFile("/tmp/test.txt", JSON.stringify(data), function (err) {
+    fs.writeFile(filename, JSON.stringify(data), function (err) {
       if (err) {
         return console.log(err);
       }
-      console.log("The file was saved!");
     });
   }
 
-  readFile(callbk) {
+  readFile(filename, callbk) {
     const fs = require('fs');
-    fs.readFile("/tmp/test.txt", callbk);
+    fs.readFile(filename, callbk);
   }
 }
